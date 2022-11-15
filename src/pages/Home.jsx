@@ -13,8 +13,11 @@ import 'react-toastify/dist/ReactToastify.css';
 export default function Home() {
 
   const [input, setInput] = useState("");
-  const [data, setData] = useState(undefined);
-  const [chartData, setChartData] = useState([]);
+  const [location, setLocation] = useState(undefined);
+  const [windData, setWindData] = useState(undefined);
+  const [tempData, setTempData] = useState(undefined);
+  const [windChartData, setWindChartData] = useState([]);
+  const [tempChartData, setTempChartData] = useState([]);
   const [apiState, setApiState] = useState(false);
   const [loader, setLoader] = useState(false);
 
@@ -40,7 +43,9 @@ export default function Home() {
         }
       });
       setApiState(response?.data?.development);
-      setData(response?.data?.data);
+      setWindData(response?.data?.windData);
+      setTempData(response?.data?.tempData);
+      setLocation(response?.data?.location);
     }
     catch (err) {
       toast.error(err.message, toastOptions);
@@ -51,13 +56,20 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (data?.response) {
-      setChartData([
+    if (windData?.response) {
+      setWindChartData([
         ['x', 'Training', 'Testing', 'Predicting'],
-        ...data.response
+        ...windData.response
       ]);
     }
-  }, [data]);
+
+    if (tempData?.response) {
+      setTempChartData([
+        ['x', 'Training', 'Testing', 'Prediction'],
+        ...tempData.response
+      ])
+    }
+  }, [windData, tempData]);
 
   return (
     <>
@@ -65,7 +77,7 @@ export default function Home() {
         <div className='image-container'>
           <img src={Cover} alt="logo" />
         </div>
-        <div className='input-container mb-5'>
+        <div className='input-container mt-3 mb-3'>
           <form className='form-container' onSubmit={formSubmit}>
             <input
               type={"text"}
@@ -80,22 +92,48 @@ export default function Home() {
         </div>
         {
           loader ?
-            <BallTriangle
-              wrapperClassName="mt-3"
-              height={100}
-              width={100}
-              radius={5}
-              color="#4fa94d"
-              ariaLabel="ball-triangle-loading"
-              wrapperClass={{}}
-              wrapperStyle=""
-              visible={loader}
-            /> :
+            <div className='mt-5 mb-5'>
+              <BallTriangle
+                wrapperClassName="mt-5"
+                height={100}
+                width={100}
+                radius={5}
+                color="#4fa94d"
+                ariaLabel="ball-triangle-loading"
+                wrapperClass={{}}
+                wrapperStyle=""
+                visible={loader}
+              />
+            </div> :
             (
-              chartData.length !== 0 ?
+              windChartData.length !== 0 ?
                 <>
-                  <h3> {apiState ? "Saved Data" : "Live Data"} </h3>
-                  <MultiLineChart data={chartData} />
+                  <h3> {apiState ? `Saved Data - ${location}` : `Live Data - ${location}`} </h3>
+                  <MultiLineChart data={windChartData} type="wind" />
+                </>
+                : <></>
+            )
+        }
+        {
+          loader ?
+            <div className='mt-5 mb-5'>
+              <BallTriangle
+                wrapperClassName="mt-5"
+                height={100}
+                width={100}
+                radius={5}
+                color="#4fa94d"
+                ariaLabel="ball-triangle-loading"
+                wrapperClass={{}}
+                wrapperStyle=""
+                visible={loader}
+              />
+            </div> :
+            (
+              windChartData.length !== 0 ?
+                <>
+                  <h3> {apiState ? `Saved Data - ${location}` : `Live Data - ${location}`} </h3>
+                  <MultiLineChart data={tempChartData} type="temp" />
                 </>
                 : <></>
             )
@@ -113,11 +151,11 @@ const Container = styled.div`
   flex-direction: column;
 
   img {
-    height: 250px;
-    width: 500px;
-    box-shadow: 0 0 10px #777;
+    height: 200px;
+    width: 450px;
+    // box-shadow: 0 0 10px #777;
     border-radius: 20px;
-    margin: 2rem 0;
+    margin: 2rem 0 0;
   }
 
   .form-container {
